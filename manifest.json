@@ -2,7 +2,7 @@
   "name": "AFU Marksheet Maker",
   "short_name": "Marksheet Maker",
   "description": "A comprehensive School Result Management System",
-  "start_url": "index.html",
+  "start_url": "/",
   "display": "standalone",
   "orientation": "any",
   "background_color": "#ffffff",
