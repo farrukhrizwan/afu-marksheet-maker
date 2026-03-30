@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!--title -->
+  <title>AFU Marksheet Maker</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      /* CHANGE: Match your app's background color */
+      background-color: #f5f5f5;
+      color: #333;
+      text-align: center;
+      padding: 2rem;
+    }
+    .offline-container { max-width: 480px; }
+    .offline-icon {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.75rem; }
+    p { font-size: 1rem; color: #666; margin-bottom: 1.5rem; line-height: 1.5; }
+    .retry-btn {
+      display: inline-block;
+      padding: 0.75rem 2rem;
+      /* CHANGE: Match your app's primary/theme color */
+      background-color: #4a90d9;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    .retry-btn:hover { background-color: #357abd; }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">📡</div>
+    <h1>You're Offline</h1>
+    <p>It looks like you've lost your internet connection. Please check your network and try again.</p>
+    <button class="retry-btn" onclick="window.location.reload();">Try Again</button>
+  </div>
+</body>
+</html>

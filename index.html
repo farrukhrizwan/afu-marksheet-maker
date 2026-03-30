@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFU Marksheet Maker</title>
+    <meta name="description" content="A comprehensive School Result Management System (SMS) - Fast, simple, and locally processed. A free tool for teachers to paste excel sheet directly in app and generate single exam and consolidated marksheets in excel format">
+    <meta name="author" content="Farrukh Barlas">
+	<!-- PWA Core -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4a90d9">
+	<!-- Windows Specific -->
+    <meta name="msapplication-TileColor" content="#4a90d9">
+    <meta name="msapplication-TileImage" content="pwa-icons/icon-144x144.png">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --secondary: #475569;
+            --bg: #f1f5f9;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --radius: 8px;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+        body { background: var(--bg); color: var(--text-main); line-height: 1.5; }
+        
+        /* Layout */
+        header { background: var(--surface); padding: 1rem 2rem; box-shadow: var(--shadow); position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-between; align-items: center; }
+        .header-brand { display: flex; align-items: center; gap: 1rem; }
+        .logo-display { font-size: 2rem; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 50%; overflow: hidden; flex-shrink: 0; }
+        .logo-display img { width: 100%; height: 100%; object-fit: cover; }
+        .header-titles h1 { font-size: 1.25rem; color: var(--primary); }
+        .header-titles h2 { font-size: 0.875rem; color: var(--text-muted); font-weight: normal; }
+
+        main { max-width: 1200px; margin: 2rem auto; padding: 0 1rem; display: flex; flex-direction: column; gap: 1.5rem; }
+        
+        .card { background: var(--surface); border-radius: var(--radius); padding: 1.5rem; box-shadow: var(--shadow); }
+        .card-header { font-size: 1.25rem; font-weight: 600; margin-bottom: 1rem; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; }
+        
+        /* Forms & Inputs */
+        .grid { display: grid; gap: 1rem; }
+        .grid-2 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+        .grid-3 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+        
+        .form-group { display: flex; flex-direction: column; gap: 0.35rem; }
+        label { font-size: 0.875rem; font-weight: 500; color: var(--secondary); }
+        input, select { padding: 0.5rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.95rem; background: var(--surface); color: var(--text-main); }
+        input:focus, select:focus { outline: 2px solid var(--primary); border-color: transparent; }
+        
+        /* File Input Styling */
+        input[type="file"] { padding: 0.25rem; }
+        .logo-preview { margin-top: 0.5rem; font-size: 0.85rem; color: var(--text-muted); }
+        .logo-preview img { max-width: 60px; max-height: 60px; border-radius: 4px; border: 1px solid var(--border); }
+        
+        .radio-group { display: flex; gap: 1rem; align-items: center; }
+        .radio-label { display: flex; align-items: center; gap: 0.25rem; cursor: pointer; font-size: 0.95rem; }
+
+        button { background: var(--primary); color: white; border: none; padding: 0.5rem 1rem; border-radius: 4px; cursor: pointer; font-weight: 500; transition: background 0.2s; }
+        button:hover { background: var(--primary-hover); }
+        button.secondary { background: var(--secondary); }
+        button.secondary:hover { background: #334155; }
+        button.danger { background: var(--danger); }
+        button.outline { background: transparent; color: var(--primary); border: 1px solid var(--primary); }
+
+        /* Tables */
+        .table-responsive { overflow-x: auto; width: 100%; margin-top: 1rem; border: 1px solid var(--border); border-radius: var(--radius); }
+        table { width: 100%; border-collapse: collapse; min-width: max-content; }
+        th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); font-size: 0.9rem; }
+        th { background: var(--bg); font-weight: 600; white-space: nowrap; }
+        .input-cell { padding: 0; }
+        .input-cell input { width: 100%; height: 100%; border: none; border-radius: 0; padding: 0.75rem; background: transparent; }
+        .input-cell input:focus { background: #eff6ff; outline: 2px inset var(--primary); }
+        
+        /* Badges & Lists */
+        .subject-list { list-style: none; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 1rem; }
+        .subject-item { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 1rem; background: var(--bg); border-radius: 4px; border: 1px solid var(--border); }
+        .badge { font-size: 0.75rem; padding: 0.2rem 0.5rem; border-radius: 99px; background: #dbeafe; color: #1e40af; }
+        .badge.core { background: #fef08a; color: #854d0e; }
+
+        /* Tabs */
+        .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; border-bottom: 2px solid var(--border); }
+        .tab { padding: 0.5rem 1rem; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -2px; font-weight: 500; color: var(--secondary); }
+        .tab.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        /* Modals & Alerts */
+        .hidden { display: none !important; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+        .modal { background: var(--surface); padding: 2rem; border-radius: var(--radius); width: 90%; max-width: 500px; text-align: center; }
+        .alert { padding: 1rem; background: #dbeafe; border-left: 4px solid var(--primary); margin-bottom: 1rem; border-radius: 0 4px 4px 0; font-size: 0.9rem; }
+
+        /* Footer */
+        footer { background: var(--surface); text-align: center; padding: 2rem; border-top: 1px solid var(--border); margin-top: auto; font-size: 0.875rem; color: var(--text-muted); }
+        footer a { color: var(--primary); text-decoration: none; font-weight: 500; }
+        footer a:hover { text-decoration: underline; }
+
+        /* Utilities */
+        .flex-between { display: flex; justify-content: space-between; align-items: center; }
+        .mt-1 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 1rem; }
+        .text-center { text-align: center; }
+
+        /* Result Table Styling */
+        .res-table { width: 100%; border-collapse: collapse; font-family: sans-serif; font-size: 11px; text-align: center; }
+        .res-table th, .res-table td { border: 1px solid #000; padding: 4px; }
+        .res-header { text-align: center; margin-bottom: 20px; }
+        .logo-img { max-height: 50px; margin-right: 10px; }
+        .weighted-small { font-size: 9px; color: #666; }
+        .weighted-consolidated { font-size: 12px; font-weight: bold; color: #000; }
+        .exam-marks-row { font-size: 10px; color: #333; }
+
+        @media print {
+            body { background: white; }
+            header, footer, .card:not(#resultCard) { display: none; }
+            #resultCard { box-shadow: none; padding: 0; }
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 1rem; text-align: center; }
+            .header-brand { justify-content: center; }
+            .header-titles h1 { font-size: 1rem; }
+            .header-titles h2 { font-size: 0.75rem; }
+        }
+    </style>
+	<script src="/pwa-register.js" defer></script>
+</head>
+<body>
+
+<header>
+    <div class="header-brand">
+        <div class="logo-display" id="displayLogo">🎓</div>
+        <div class="header-titles">
+            <h1>AFU Marksheet Maker</h1>
+            <h2 id="displaySchoolName">Your School Name Here</h2>
+        </div>
+    </div>
+    <div>
+        <button class="outline" onclick="document.getElementById('formulaModal').classList.remove('hidden')">View Formulas</button>
+    </div>
+</header>
+
+<main id="app">
+    <!-- 1. School Information -->
+    <div class="card">
+        <div class="card-header">1. School Information</div>
+        <div class="grid grid-3">
+            <div class="form-group">
+                <label>School Name</label>
+                <input type="text" id="schoolName" placeholder="e.g. Springfield High" oninput="updateHeader()">
+            </div>
+            <div class="form-group">
+                <label>Session</label>
+                <input type="text" id="session" placeholder="e.g. 2025-2026">
+            </div>
+            <div class="form-group">
+                <label>School Logo Upload</label>
+                <input type="file" id="logoUpload" accept="image/*" onchange="handleLogoUpload()">
+                <div class="logo-preview" id="logoPreview"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Exam Mode & Details -->
+    <div class="card">
+        <div class="card-header">2. Exam Details</div>
+        <div class="form-group mb-1">
+            <label>Exam Type Mode</label>
+            <div class="radio-group">
+                <label class="radio-label"><input type="radio" name="examMode" value="single" checked onchange="toggleMode()"> Single Exam</label>
+                <label class="radio-label"><input type="radio" name="examMode" value="consolidated" onchange="toggleMode()"> Consolidated (2 Exams)</label>
+            </div>
+        </div>
+
+        <div class="grid grid-2">
+            <div class="form-group">
+                <label>Class</label>
+                <select id="className">
+                    <option value="K.G">K.G</option>
+                    <option value="Nursery">Nursery</option>
+                    <option value="Prep">Prep</option>
+                    <option value="Class 1">Class 1</option>
+                    <option value="Class 2">Class 2</option>
+                    <option value="Class 3">Class 3</option>
+                    <option value="Class 4">Class 4</option>
+                    <option value="Class 5">Class 5</option>
+                    <option value="Class 6">Class 6</option>
+                    <option value="Class 7">Class 7</option>
+                    <option value="Class 8">Class 8</option>
+                    <option value="Class 9">Class 9</option>
+                    <option value="Class 10">Class 10</option>
+                    <option value="Class 11">Class 11</option>
+                    <option value="Class 12">Class 12</option>
+                    <option value="Other">Other (Type Below)</option>
+                </select>
+                <input type="text" id="classOther" placeholder="Type custom class" class="hidden mt-1">
+            </div>
+            <div class="form-group">
+                <label>Section (Optional)</label>
+                <select id="sectionName">
+                    <option value="">None</option>
+                    <option value="A">A</option>
+                    <option value="B">B</option>
+                    <option value="C">C</option>
+                    <option value="D">D</option>
+                    <option value="G">G</option>
+                    <option value="Other">Other (Type Below)</option>
+                </select>
+                <input type="text" id="sectionOther" placeholder="Type custom section" class="hidden mt-1">
+            </div>
+        </div>
+
+        <div id="singleDetails" class="grid grid-2 mt-1">
+            <div class="form-group">
+                <label>Term</label>
+                <input type="text" id="s_term" placeholder="e.g. Mid Term">
+            </div>
+            <div class="form-group">
+                <label>Assessment No/Name</label>
+                <input type="text" id="s_assessment" placeholder="e.g. Assessment 1">
+            </div>
+        </div>
+
+        <div id="consolidatedDetails" class="hidden mt-1">
+            <div class="grid grid-2" style="background: var(--bg); padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                <div>
+                    <h4>Exam 1 Details</h4>
+                    <div class="form-group mt-1"><label>Term</label><input type="text" id="c1_term"></div>
+                    <div class="form-group mt-1"><label>Assessment</label><input type="text" id="c1_assessment"></div>
+                    <div class="form-group mt-1"><label>Weightage (out of 100)</label><input type="number" id="c1_weight" value="50"></div>
+                </div>
+                <div>
+                    <h4>Exam 2 Details</h4>
+                    <div class="form-group mt-1"><label>Term</label><input type="text" id="c2_term"></div>
+                    <div class="form-group mt-1"><label>Assessment</label><input type="text" id="c2_assessment"></div>
+                    <div class="form-group mt-1"><label>Weightage (out of 100)</label><input type="number" id="c2_weight" value="50"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Subjects & Passing Criteria -->
+    <div class="card">
+        <div class="card-header flex-between">
+            <span>3. Subjects Manager</span>
+            <span style="font-size: 0.9rem; font-weight: normal;">Total Exam Marks: <strong id="totalMarksDisplay">0</strong></span>
+        </div>
+        
+        <div class="grid grid-3" style="align-items: end;">
+            <div class="form-group">
+                <label>Subject Name</label>
+                <input type="text" id="subName" placeholder="e.g. Mathematics">
+            </div>
+            <div class="form-group">
+                <label>Total Marks</label>
+                <input type="number" id="subMarks" placeholder="100" min="1">
+            </div>
+            <div class="form-group radio-group">
+                <label class="radio-label"><input type="radio" name="subCore" value="core"> Core</label>
+                <label class="radio-label"><input type="radio" name="subCore" value="noncore" checked> Non-Core</label>
+                <button type="button" onclick="addSubject()">Add</button>
+            </div>
+        </div>
+
+        <ul class="subject-list" id="subjectList">
+            <!-- Subjects appended here -->
+        </ul>
+
+        <div class="grid grid-3 mt-1" style="border-top: 1px solid var(--border); padding-top: 1rem;">
+            <div class="form-group">
+                <label>Passing Percentage (%)</label>
+                <input type="number" id="passPercent" value="40" min="1" max="100">
+            </div>
+            <div class="form-group">
+                <label>Core Subject Passing Criteria (Optional)</label>
+                <select id="coreRule">
+                    <option value="">Aggregate/Total Marks Only</option>
+                    <option value="1_2">Fail if fails 1 Core & 2 Non-Core</option>
+                    <option value="2_2">Fail if fails 2 Core & 2 Non-Core</option>
+                    <option value="1_3">Fail if fails 1 Core & 3 Non-Core</option>
+                    <option value="2_3">Fail if fails 2 Core & 3 Non-Core</option>
+                </select>
+            </div>
+            <div class="form-group" style="justify-content: end;">
+                <button class="outline" onclick="document.getElementById('gradesModal').classList.remove('hidden')">Customize Grades</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. Data Entry -->
+    <div class="card">
+        <div class="card-header flex-between">
+            <span>4. Student Data Entry (Max 50)</span>
+            <button onclick="generateDataGrids()">Initialize Data Grid</button>
+        </div>
+        <div class="alert">
+            💡 <strong>Tip:</strong> You can paste data directly from Excel into the grid below. Ensure columns match: Ser No, Name, Father Name, Subjects...
+        </div>
+
+        <div id="dataGridsContainer" class="hidden">
+            <div id="consolidatedTabs" class="tabs hidden">
+                <div class="tab active" onclick="switchTab(1)" id="tab1">Exam 1 Entry</div>
+                <div class="tab" onclick="switchTab(2)" id="tab2">Exam 2 Entry</div>
+            </div>
+
+            <div class="table-responsive" id="grid1Container">
+                <table id="grid1">
+                    <thead id="grid1Head"></thead>
+                    <tbody id="grid1Body"></tbody>
+                </table>
+            </div>
+
+            <div class="table-responsive hidden" id="grid2Container">
+                <table id="grid2">
+                    <thead id="grid2Head"></thead>
+                    <tbody id="grid2Body"></tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="mt-1 flex-between hidden" id="actionButtons">
+            <button onclick="calculateResults()">Generate Mark sheet</button>
+            <button class="success hidden" id="downloadBtn" onclick="downloadResult()">📥 Download Excel</button>
+        </div>
+    </div>
+
+    <!-- 5. Results Viewer -->
+    <div class="card hidden" id="resultCard">
+        <div class="card-header">5. Generated Mark sheet Preview</div>
+        <div class="table-responsive" id="resultPreviewContainer">
+            <!-- Rendered result table goes here -->
+        </div>
+    </div>
+</main>
+
+<footer>
+    <p>&copy; 2026 <a href="https://farrukhrizwan.qzz.io/" target="_blank" rel="noopener noreferrer">Farrukh Barlas</a> | <a href="https://www.afuwebs.dpdns.org/home" target="_blank" rel="noopener noreferrer">AFUWEBS</a></p>
+    <div style="margin-top: 0.5rem; display: flex; justify-content: center; gap: 1rem;">
+        <a href="privacy.html"target="_blank" rel="noopener">Privacy Policy</a>
+        <a href="terms.html"target="_blank" rel="noopener">Terms & Conditions</a>
+		<a href="about.html"target="_blank" rel="noopener">About</a>
+    </div>
+	<div> <button id="pwa-install-btn" style="display:none;">  Install App	</button> </div>
+</footer>
+
+<!-- Modals -->
+<div id="gradesModal" class="modal-overlay hidden">
+    <div class="modal">
+        <h3>Customize Grade Percentages (>=)</h3>
+        <div class="grid grid-2 mt-1" id="gradesInputs">
+            <!-- Filled via JS -->
+        </div>
+        <button class="mt-1" onclick="document.getElementById('gradesModal').classList.add('hidden')">Save & Close</button>
+    </div>
+</div>
+
+<div id="formulaModal" class="modal-overlay hidden">
+    <div class="modal" style="max-width: 600px; text-align: left;">
+        <h3>Consolidated Result Formulas</h3>
+        <p class="mt-1"><strong>In Words:</strong></p>
+        <p style="background: var(--bg); padding: 1rem; border-radius: 4px; font-size: 0.9rem;">
+            For EACH SUBJECT separately:<br><br>
+            <strong>Subject Weighted Marks = (Exam 1 marks ÷ Exam 1 total marks × Exam 1 weight) + (Exam 2 marks ÷ Exam 2 total marks × Exam 2 weight)</strong>
+        </p>
+        <p class="mt-1"><strong>Numerical Application (Example W1=50, W2=50):</strong></p>
+        <p style="background: var(--bg); padding: 1rem; border-radius: 4px; font-size: 0.9rem;">
+            <strong>Subject: Mathematics (100 marks each exam)</strong><br>
+            Exam 1: 40 marks obtained, Exam 2: 45 marks obtained<br><br>
+            Exam 1 Weighted = (40 ÷ 100 × 50) = 20<br>
+            Exam 2 Weighted = (45 ÷ 100 × 50) = 22.5<br>
+            <strong>Consolidated Weighted Marks = 20 + 22.5 = 42.5</strong>
+        </p>
+        <div class="text-center mt-1">
+            <button onclick="document.getElementById('formulaModal').classList.add('hidden')">Close</button>
+        </div>
+    </div>
+</div>
+
+<div id="thankYouModal" class="modal-overlay hidden">
+    <div class="modal">
+        <h3>🎉 Thank You!</h3>
+        <p class="mt-1">Your marksheet has been downloaded successfully.</p>
+        <p class="mt-1">If you liked our web application, please follow us on social media:</p>
+        <div class="mt-1" style="display: flex; justify-content: center; gap: 1rem; font-size: 1.5rem;">
+            <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" style="text-decoration:none">📘</a>
+            <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" style="text-decoration:none">▶️</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer" style="text-decoration:none">✖️</a>
+        </div>
+        <button class="mt-1" onclick="document.getElementById('thankYouModal').classList.add('hidden')">Close</button>
+    </div>
+</div>
+
+<script>
+    // ==================== STATE MANAGEMENT ====================
+    // All data is stored in this single state object (in browser memory only)
+    // NO external files needed - everything is self-contained
+    
+    const state = {
+        subjects: [],
+        grades: [
+            { label: 'A+', min: 90 }, { label: 'A', min: 80 }, { label: 'B+', min: 70 },
+            { label: 'B', min: 60 }, { label: 'C', min: 50 }, { label: 'D', min: 40 },
+            { label: 'E', min: 33 }, { label: 'Retry', min: 0 }
+        ],
+        resultsHtml: "",
+        logoDataUrl: null // Store uploaded school logo as base64 data URL
+    };
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener("DOMContentLoaded", () => {
+        // Dropdown "Other" listeners
+        document.getElementById('className').addEventListener('change', (e) => {
+            document.getElementById('classOther').classList.toggle('hidden', e.target.value !== 'Other');
+        });
+        document.getElementById('sectionName').addEventListener('change', (e) => {
+            document.getElementById('sectionOther').classList.toggle('hidden', e.target.value !== 'Other');
+        });
+
+        // Setup Grades UI
+        const gInputs = document.getElementById('gradesInputs');
+        state.grades.forEach((g, idx) => {
+            if(g.label === 'Retry') return;
+            gInputs.innerHTML += `
+                <div class="form-group text-left">
+                    <label>Grade ${g.label} (>= %)</label>
+                    <input type="number" id="grade_${idx}" value="${g.min}" onchange="updateGrade(${idx}, this.value)">
+                </div>
+            `;
+        });
+    });
+
+    // ==================== LOGO HANDLING ====================
+    function handleLogoUpload() {
+        const fileInput = document.getElementById('logoUpload');
+        const file = fileInput.files[0];
+        
+        if (!file) return;
+
+        // Validate file is image
+        if (!file.type.startsWith('image/')) {
+            alert('Please upload a valid image file.');
+            return;
+        }
+
+        // File size limit 2MB
+        if (file.size > 2 * 1024 * 1024) {
+            alert('Image size should be less than 2MB.');
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Store as base64 data URL
+            state.logoDataUrl = e.target.result;
+            
+            // Display preview in BROWSER HEADER ONLY (user's view)
+            const logoDisplay = document.getElementById('displayLogo');
+            logoDisplay.innerHTML = `<img src="${state.logoDataUrl}" alt="School Logo">`;
+            
+            // Show preview below input
+            const preview = document.getElementById('logoPreview');
+            preview.innerHTML = `
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <img src="${state.logoDataUrl}" alt="Preview" style="max-width: 60px; max-height: 60px; border-radius: 4px;">
+                    <span style="font-size: 0.8rem; color: var(--success);">✓ Logo uploaded successfully</span>
+                </div>
+            `;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // ==================== HELPERS ====================
+    function updateHeader() {
+        const name = document.getElementById('schoolName').value || 'Your School Name Here';
+        document.getElementById('displaySchoolName').innerText = name;
+    }
+
+    function toggleMode() {
+        const mode = document.querySelector('input[name="examMode"]:checked').value;
+        document.getElementById('singleDetails').classList.toggle('hidden', mode === 'consolidated');
+        document.getElementById('consolidatedDetails').classList.toggle('hidden', mode === 'single');
+        document.getElementById('consolidatedTabs').classList.toggle('hidden', mode === 'single');
+        
+        // Reset grids if mode changes
+        document.getElementById('dataGridsContainer').classList.add('hidden');
+        document.getElementById('actionButtons').classList.add('hidden');
+    }
+
+    function updateGrade(idx, val) { state.grades[idx].min = Number(val); }
+
+    function getActualClass() {
+        const sel = document.getElementById('className').value;
+        return sel === 'Other' ? document.getElementById('classOther').value : sel;
+    }
+
+    function getActualSection() {
+        const sel = document.getElementById('sectionName').value;
+        return sel === 'Other' ? document.getElementById('sectionOther').value : sel;
+    }
+
+    // ==================== SUBJECTS MANAGEMENT ====================
+    function addSubject() {
+        const name = document.getElementById('subName').value.trim();
+        const marks = parseInt(document.getElementById('subMarks').value);
+        const isCore = document.querySelector('input[name="subCore"]:checked').value === 'core';
+
+        if (!name || isNaN(marks) || marks <= 0) {
+            alert('Please enter valid subject name and marks.'); return;
+        }
+
+        const id = state.subjects.length + 1;
+        state.subjects.push({ id, name, marks, isCore });
+        
+        document.getElementById('subName').value = '';
+        document.getElementById('subMarks').value = '';
+        renderSubjects();
+    }
+
+    function removeSubject(id) {
+        state.subjects = state.subjects.filter(s => s.id !== id);
+        renderSubjects();
+    }
+
+    function renderSubjects() {
+        const list = document.getElementById('subjectList');
+        list.innerHTML = state.subjects.map((s, idx) => `
+            <li class="subject-item">
+                <div>
+                    <strong>${idx + 1}. ${s.name}</strong> 
+                    <span class="text-muted">(${s.marks} Marks)</span>
+                    <span class="badge ${s.isCore ? 'core' : ''}">${s.isCore ? 'Core' : 'Non-Core'}</span>
+                </div>
+                <button type="button" class="danger" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;" onclick="removeSubject(${s.id})">X</button>
+            </li>
+        `).join('');
+        
+        const total = state.subjects.reduce((sum, s) => sum + s.marks, 0);
+        document.getElementById('totalMarksDisplay').innerText = total;
+    }
+
+    // ==================== DATA GRIDS ====================
+    function switchTab(num) {
+        document.getElementById('tab1').classList.toggle('active', num === 1);
+        document.getElementById('tab2').classList.toggle('active', num === 2);
+        document.getElementById('grid1Container').classList.toggle('hidden', num !== 1);
+        document.getElementById('grid2Container').classList.toggle('hidden', num !== 2);
+    }
+
+    function generateDataGrids() {
+        if (state.subjects.length === 0) {
+            alert("Please add at least one subject first."); return;
+        }
+        
+        const mode = document.querySelector('input[name="examMode"]:checked').value;
+        buildGrid(1);
+        if (mode === 'consolidated') buildGrid(2);
+        
+        document.getElementById('dataGridsContainer').classList.remove('hidden');
+        document.getElementById('actionButtons').classList.remove('hidden');
+        document.getElementById('downloadBtn').classList.add('hidden');
+        document.getElementById('resultCard').classList.add('hidden');
+    }
+
+    function buildGrid(gridNum) {
+        const thead = document.getElementById(`grid${gridNum}Head`);
+        const tbody = document.getElementById(`grid${gridNum}Body`);
+        
+        let headHtml = `<tr>
+            <th>Ser No</th><th>Name</th><th>Father Name</th>`;
+        state.subjects.forEach(s => {
+            headHtml += `<th>${s.name}<br><small>(${s.marks})</small></th>`;
+        });
+        headHtml += `</tr>`;
+        thead.innerHTML = headHtml;
+
+        let bodyHtml = '';
+        for (let i = 0; i < 50; i++) {
+            bodyHtml += `<tr>
+                <td class="input-cell"><input type="text" data-col="0" data-row="${i}" class="g${gridNum}"></td>
+                <td class="input-cell"><input type="text" data-col="1" data-row="${i}" class="g${gridNum}"></td>
+                <td class="input-cell"><input type="text" data-col="2" data-row="${i}" class="g${gridNum}"></td>`;
+            state.subjects.forEach((s, idx) => {
+                bodyHtml += `<td class="input-cell"><input type="number" min="0" max="${s.marks}" data-col="${3+idx}" data-row="${i}" class="g${gridNum} subject-mark"></td>`;
+            });
+            bodyHtml += `</tr>`;
+        }
+        tbody.innerHTML = bodyHtml;
+
+        // Paste Handler
+        tbody.addEventListener('paste', handlePaste);
+    }
+
+    function handlePaste(e) {
+        e.preventDefault();
+        const clipboard = (e.clipboardData || window.clipboardData).getData('text');
+        const rows = clipboard.split(/\r\n|\n|\r/);
+        const target = e.target;
+        if(target.tagName !== 'INPUT') return;
+        
+        const startRow = parseInt(target.getAttribute('data-row'));
+        const startCol = parseInt(target.getAttribute('data-col'));
+        const gridClass = target.classList[0]; // g1 or g2
+        
+        rows.forEach((row, rIdx) => {
+            if(!row.trim()) return;
+            const cols = row.split(/\t|,/);
+            cols.forEach((col, cIdx) => {
+                const r = startRow + rIdx;
+                const c = startCol + cIdx;
+                if(r < 50) {
+                    const input = document.querySelector(`input.${gridClass}[data-row="${r}"][data-col="${c}"]`);
+                    if(input) input.value = col.trim();
+                }
+            });
+        });
+    }
+
+    // ==================== CALCULATION ENGINE ====================
+    function getGrade(percentage) {
+        for (let g of state.grades) {
+            if (percentage >= g.min) return g.label;
+        }
+        return 'Retry';
+    }
+
+    function extractGridData(gridNum) {
+        const data = [];
+        for (let i = 0; i < 50; i++) {
+            const ser = document.querySelector(`input.g${gridNum}[data-row="${i}"][data-col="0"]`).value;
+            const name = document.querySelector(`input.g${gridNum}[data-row="${i}"][data-col="1"]`).value;
+            if (!name) continue;
+
+            const rowData = { ser, name, father: document.querySelector(`input.g${gridNum}[data-row="${i}"][data-col="2"]`).value, marks: [] };
+            state.subjects.forEach((s, idx) => {
+                const val = document.querySelector(`input.g${gridNum}[data-row="${i}"][data-col="${3+idx}"]`).value;
+                rowData.marks.push(val === '' ? 0 : parseFloat(val));
+            });
+            data.push(rowData);
+        }
+        return data;
+    }
+
+    function checkPassingCriteria(subjectMarksArray, totalPerc) {
+        const passP = parseFloat(document.getElementById('passPercent').value) || 40;
+        const rule = document.getElementById('coreRule').value;
+        
+        if (totalPerc < passP) return false;
+
+        if (rule) {
+            let coreFails = 0, nonCoreFails = 0;
+            state.subjects.forEach((s, idx) => {
+                const perc = (subjectMarksArray[idx] / s.marks) * 100;
+                if (perc < passP) {
+                    s.isCore ? coreFails++ : nonCoreFails++;
+                }
+            });
+
+            const [reqC, reqNC] = rule.split('_').map(Number);
+            if (coreFails >= reqC && nonCoreFails >= reqNC) return false;
+        }
+        return true;
+    }
+
+    function calculateResults() {
+        const mode = document.querySelector('input[name="examMode"]:checked').value;
+        const data1 = extractGridData(1);
+        if (data1.length === 0) { alert("No student data found!"); return; }
+
+        let results = [];
+        
+        if (mode === 'single') {
+            const totalExamMax = state.subjects.reduce((sum, s) => sum + s.marks, 0);
+            
+            data1.forEach(student => {
+                const totalObt = student.marks.reduce((sum, m) => sum + m, 0);
+                const perc = (totalObt / totalExamMax) * 100;
+                const isPass = checkPassingCriteria(student.marks, perc);
+                const grade = isPass ? getGrade(perc) : 'Retry';
+                
+                results.push({
+                    ...student,
+                    totalObt, max: totalExamMax, perc, grade,
+                    remarks: isPass ? 'Promoted' : 'Needs Improvement'
+                });
+            });
+        } else {
+            const data2 = extractGridData(2);
+            const w1 = parseFloat(document.getElementById('c1_weight').value) || 50;
+            const w2 = parseFloat(document.getElementById('c2_weight').value) || 50;
+            
+            data1.forEach(s1 => {
+                const s2 = data2.find(s => s.ser === s1.ser && s.name === s1.name) || { marks: Array(state.subjects.length).fill(0) };
+                
+                let consolidatedMarks = [];
+                let exam1WeightedMarks = [];
+                let exam2WeightedMarks = [];
+                let consMaxTotal = 0;
+                let consObtTotal = 0;
+
+                state.subjects.forEach((sub, idx) => {
+                    const m1 = s1.marks[idx];
+                    const m2 = s2.marks[idx];
+                    const w1_marks = (m1 / sub.marks) * w1;
+                    const w2_marks = (m2 / sub.marks) * w2;
+                    const consolidated = w1_marks + w2_marks;
+                    
+                    exam1WeightedMarks.push(w1_marks);
+                    exam2WeightedMarks.push(w2_marks);
+                    consolidatedMarks.push(consolidated);
+                    
+                    consObtTotal += consolidated;
+                    consMaxTotal += (w1 + w2);
+                });
+
+                const perc = (consObtTotal / consMaxTotal) * 100;
+                const scaledMarks = consolidatedMarks.map((m, i) => (m / (w1 + w2)) * state.subjects[i].marks);
+                const isPass = checkPassingCriteria(scaledMarks, perc);
+                const grade = isPass ? getGrade(perc) : 'Retry';
+
+                results.push({
+                    ser: s1.ser, name: s1.name, father: s1.father,
+                    marks: consolidatedMarks,
+                    exam1Weighted: exam1WeightedMarks,
+                    exam2Weighted: exam2WeightedMarks,
+                    totalObt: consObtTotal, max: consMaxTotal, perc, grade,
+                    remarks: isPass ? 'Promoted' : 'Needs Improvement'
+                });
+            });
+        }
+
+        // Assign Positions
+        results.sort((a, b) => b.totalObt - a.totalObt);
+        let pos = 1;
+        results.forEach((r, idx) => {
+            if(idx > 0 && r.totalObt < results[idx-1].totalObt) pos = idx + 1;
+            r.position = pos;
+        });
+
+        renderResultView(results, mode);
+    }
+
+    function renderResultView(results, mode) {
+        const schoolName = document.getElementById('schoolName').value || 'School Name';
+        const session = document.getElementById('session').value || '-';
+        const cls = getActualClass();
+        const sec = getActualSection();
+        let examInfo = '';
+        
+        if (mode === 'single') {
+            examInfo = `${document.getElementById('s_term').value} - ${document.getElementById('s_assessment').value}`;
+        } else {
+            examInfo = `Consolidated: ${document.getElementById('c1_term').value} & ${document.getElementById('c2_term').value}`;
+        }
+
+        let logoHtml = '';
+        if (state.logoDataUrl) {
+            logoHtml = `<img src="${state.logoDataUrl}" alt="Logo" style="max-height: 50px; margin-right: 10px; vertical-align: middle;">`;
+        }
+
+        let html = `
+            <div class="res-header">
+                <div style="display: flex; align-items: center; justify-content: center; margin-bottom: 10px;">
+                    ${logoHtml}
+                    <h2>${schoolName}</h2>
+                </div>
+                <p>Session: ${session} | Class: ${cls} ${sec ? '| Section: '+sec : ''} | Exam: ${examInfo}</p>
+            </div>
+            <table class="res-table">
+                <thead>
+                    <tr>
+                        <th>Ser</th><th>Name</th><th>Father Name</th>`;
+        
+        if (mode === 'single') {
+            state.subjects.forEach(s => {
+                html += `<th>${s.name}<br><small>(${s.marks})</small></th>`;
+            });
+        } else {
+            state.subjects.forEach(s => {
+                html += `<th colspan="3" style="text-align: center;">${s.name}</th>`;
+            });
+        }
+
+        html += `<th>Total Obt</th><th>Max Total</th><th>%age</th><th>Grade</th><th>Position</th><th>Remarks</th></tr>`;
+        
+        if (mode === 'consolidated') {
+            html += `<tr style="background: #f5f5f5;">
+                <th colspan="3"></th>`;
+            state.subjects.forEach(() => {
+                html += `<th style="font-size: 9px; padding: 2px;">E1 W</th><th style="font-size: 9px; padding: 2px;">E2 W</th><th style="font-size: 9px; padding: 2px;">Cons</th>`;
+            });
+            html += `<th colspan="6"></th></tr>`;
+        }
+        
+        html += `</thead><tbody>`;
+
+        results.forEach(r => {
+            html += `<tr>
+                <td>${r.ser}</td><td style="text-align:left">${r.name}</td><td style="text-align:left">${r.father}</td>`;
+            
+            if (mode === 'single') {
+                r.marks.forEach(m => {
+                    html += `<td>${m}</td>`;
+                });
+            } else {
+                state.subjects.forEach((_, idx) => {
+                    const e1 = r.exam1Weighted[idx].toFixed(1);
+                    const e2 = r.exam2Weighted[idx].toFixed(1);
+                    const cons = r.marks[idx].toFixed(1);
+                    html += `
+                        <td style="padding: 2px;">
+                            <div class="weighted-small">${e1}</div>
+                        </td>
+                        <td style="padding: 2px;">
+                            <div class="weighted-small">${e2}</div>
+                        </td>
+                        <td style="padding: 2px;">
+                            <div class="weighted-consolidated">${cons}</div>
+                        </td>
+                    `;
+                });
+            }
+            
+            html += `
+                <td><strong>${mode === 'consolidated' ? r.totalObt.toFixed(1) : r.totalObt}</strong></td>
+                <td>${r.max}</td>
+                <td>${r.perc.toFixed(2)}%</td>
+                <td><strong>${r.grade}</strong></td>
+                <td>${r.position}</td>
+                <td>${r.remarks}</td>
+            </tr>`;
+        });
+        
+        html += `</tbody></table>`;
+
+        document.getElementById('resultPreviewContainer').innerHTML = html;
+        state.resultsHtml = html;
+
+        document.getElementById('resultCard').classList.remove('hidden');
+        document.getElementById('downloadBtn').classList.remove('hidden');
+        
+        document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    // ==================== EXCEL DOWNLOAD ====================
+    function downloadResult() {
+        const schoolName = document.getElementById('schoolName').value || 'School Name';
+        const session = document.getElementById('session').value || '-';
+        const cls = getActualClass();
+        const sec = getActualSection();
+        const mode = document.querySelector('input[name="examMode"]:checked').value;
+
+        // Logo embedded in Excel (only once)
+        let logoHtml = '';
+        if (state.logoDataUrl) {
+            logoHtml = `<td rowspan="2" style="text-align:center; vertical-align:middle; padding: 10px;">
+                <img src="${state.logoDataUrl}" width="50" height="50" alt="School Logo">
+            </td>`;
+        }
+
+        // Excel MSO markup - CORRECTED: School name appears ONCE only
+        const excelMarkup = `
+            <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head>
+                <meta charset="utf-8">
+                <style>
+                    @page { 
+                        mso-page-orientation: landscape; 
+                        margin: 0.2in 0.2in 0.2in 0.2in; 
+                    }
+                    table { white-space: nowrap; }
+                    .weighted-small { font-size: 9pt; color: #666; }
+                    .weighted-consolidated { font-size: 11pt; font-weight: bold; }
+                    .header-table { width: 100%; margin-bottom: 20px; }
+                    .header-table tr td { border: none; padding: 5px; }
+                </style>
+                <!--[if gte mso 9]>
+                <xml>
+                    <x:ExcelWorkbook>
+                        <x:ExcelWorksheets>
+                            <x:ExcelWorksheet>
+                                <x:Name>Marksheet</x:Name>
+                                <x:WorksheetOptions>
+                                    <x:Print>
+                                        <x:ValidPrinterInfo/>
+                                        <x:PaperSizeIndex>9</x:PaperSizeIndex>
+                                        <x:Scale>85</x:Scale>
+                                        <x:FitWidth>1</x:FitWidth>
+                                        <x:FitHeight>99</x:FitHeight>
+                                    </x:Print>
+                                    <x:DisplayGridlines/>
+                                </x:WorksheetOptions>
+                            </x:ExcelWorksheet>
+                        </x:ExcelWorksheets>
+                    </x:ExcelWorkbook>
+                </xml>
+                <![endif]-->
+            </head>
+            <body>
+                <table class="header-table">
+                    <tr>
+                        ${logoHtml}
+                        <td style="text-align: center; vertical-align: middle;">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: bold;">${schoolName}</h2>
+                            <p style="margin: 5px 0; font-size: 11px;">Session: ${session} | Class: ${cls} ${sec ? '| Section: '+sec : ''}</p>
+                        </td>
+                    </tr>
+                </table>
+                ${state.resultsHtml}
+                <br>
+                ${mode === 'consolidated' ? `
+                    <div style="margin-top: 20px; font-size: 10pt; color: #666;">
+                        <p><strong>Legend for Consolidated Marksheet:</strong></p>
+                        <p>E1 W = Exam 1 Weighted Marks | E2 W = Exam 2 Weighted Marks | Cons = Consolidated Marks</p>
+                        <p style="margin-top: 10px; font-size: 9pt;">
+                            <strong>Formula:</strong> Consolidated Subject Marks = (Exam 1 Marks ÷ Exam 1 Total × Weight1) + (Exam 2 Marks ÷ Exam 2 Total × Weight2)
+                        </p>
+                    </div>
+                ` : ''}
+            </body>
+            </html>
+        `;
+
+        const blob = new Blob([excelMarkup], { type: 'application/vnd.ms-excel' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Marksheet_${cls}_${session || 'Result'}.xls`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        document.getElementById('thankYouModal').classList.remove('hidden');
+    }
+	
+	if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js')
+      .then(reg => console.log('SW Registered!', reg.scope))
+      .catch(err => console.error('SW Registration Failed', err));
+  });
+}
+
+</script>
+</body>
+</html>
